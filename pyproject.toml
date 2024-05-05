@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-namme = "model_trainer"
+name = "model_trainer"
 version = "0.0.1"
 dependencies = [
     "matplotlib>=3.0.0",
@@ -18,7 +18,6 @@ authors = [
 ]
 description = "Pytorch wrapper for training models"
 keywords = ["pytorch", "training", "wrapper", "machine learning", "deep learning", "ML", "DL", "AI"]
-license = "MIT"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",

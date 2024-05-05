@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+namme = "model_trainer"
+version = "0.0.1"
+dependencies = [
+    "matplotlib>=3.0.0",
+    "numpy>=1.23.0",
+    "pandas>=2.0.0",
+    "scikit_learn>=1.0.0",
+    "torch>=2.0.0",
+]
+requires-python = ">=3.6"
+authors = [
+    {name = "Rishad Joarder", email = "sa.dip987@gmail.com"}
+]
+description = "Pytorch wrapper for training models"
+keywords = ["pytorch", "training", "wrapper", "machine learning", "deep learning", "ML", "DL", "AI"]
+license = "MIT"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+

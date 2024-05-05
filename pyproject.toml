@@ -39,4 +39,5 @@ classifiers = [
 ]
 
 [project.urls]
+homepage = "https://github.com/RishadR/model_trainer"
 

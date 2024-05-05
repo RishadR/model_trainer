@@ -2,7 +2,7 @@ from typing import Dict, Type
 from torch import nn
 import torch
 from torch.optim import SGD, Optimizer
-from inverse_modelling_tfo.data.datasets import DATA_LOADER_INPUT_INDEX
+from .misc import DATA_LOADER_INPUT_INDEX
 from .DataLoaderGenerators import DataLoaderGenerator
 from .validation_methods import ValidationMethod
 from .loss_funcs import LossFunction

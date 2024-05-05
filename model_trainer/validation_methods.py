@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from typing import Tuple, Any, List
 import pandas as pd
 import numpy as np
-from inverse_modelling_tfo.misc import set_seed
+from .misc import set_seed
 
 
 class ValidationMethod(ABC):

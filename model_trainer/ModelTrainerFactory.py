@@ -3,9 +3,8 @@ Deprecated
 """
 
 from typing import Callable, Dict, Type
-
 from torch.utils.data import DataLoader
-from inverse_modelling_tfo.model_training.loss_funcs import LossFunction
+from .loss_funcs import LossFunction
 
 
 class ModelTrainerFactory:

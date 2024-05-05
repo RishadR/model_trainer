@@ -3,11 +3,11 @@ A set of custom loss function meant to be used with the ModelTrainer Class
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Literal, Optional
+from typing import Dict, List, Optional
 from matplotlib import pyplot as plt
 from sklearn.preprocessing import StandardScaler
 import torch
-from inverse_modelling_tfo.data.datasets import DATA_LOADER_LABEL_INDEX, DATA_LOADER_EXTRA_INDEX
+from .misc import DATA_LOADER_LABEL_INDEX, DATA_LOADER_EXTRA_INDEX
 
 
 class LossTracker:

@@ -85,9 +85,9 @@ class LossFunction(ABC):
 
     def __init__(self, name: Optional[str] = None):
         self.name = name
-        self.loss_tracker: LossTracker
         self.train_loss_name = "train_loss" if name is None else f"{name}_train_loss"
         self.val_loss_name = "val_loss" if name is None else f"{name}_val_loss"
+        self.loss_tracker = LossTracker([self.train_loss_name, self.val_loss_name])
 
     @abstractmethod
     def __call__(self, model_output, dataloader_data, trainer_mode: str) -> torch.Tensor:
@@ -145,10 +145,6 @@ class TorchLossWrapper(LossFunction):
         considered. Defaults to None
         """
         super().__init__(name)
-        if name is None:
-            self.loss_tracker = LossTracker(["train_loss", "val_loss"])
-        else:
-            self.loss_tracker = LossTracker([f"{name}_train_loss", f"{name}_val_loss"])
         self.loss_func = torch_loss_object
         self.column_indices = column_indices
 
@@ -198,6 +194,7 @@ class SumLoss(LossFunction):
         self.weights_list = weights
         self.train_losses = list(filter(lambda x: "train_loss" in x, all_names))
         self.val_losses = list(filter(lambda x: "val_loss" in x, all_names))
+        # Overrides defualt loss tracker
         self.loss_tracker = LossTracker(all_names + [self.train_loss_name, self.val_loss_name])
 
     def __call__(self, model_output, dataloader_data, trainer_mode) -> torch.Tensor:
@@ -287,9 +284,6 @@ class DynamicWeightLoss(LossFunction):
         """
         super().__init__(name)
         self.loss_func = loss_func
-        self.train_loss_name = "train_loss" if name is None else f"{name}_train_loss"
-        self.val_loss_name = "val_loss" if name is None else f"{name}_val_loss"
-        self.loss_tracker = LossTracker([self.train_loss_name, self.val_loss_name])
         self.weights = torch.linspace(start_weight, end_weight, epoch_count)
         self.weights = torch.cat([start_weight * torch.ones(start_delay), self.weights])
         self.current_epoch = 0

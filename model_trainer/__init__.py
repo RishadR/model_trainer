@@ -1,5 +1,5 @@
 """
-Models
+Model Trainer Module
 ======
 This module contains the classes and functions to create, train and validate models.
 
@@ -7,14 +7,7 @@ This module contains the classes and functions to create, train and validate mod
 
 from .ModelTrainer import ModelTrainer
 from .validation_methods import ValidationMethod, RandomSplit, CVSplit, HoldOneOut, CombineMethods
-from .loss_funcs import (
-    TorchLossWrapper,
-    SumLoss,
-    BLPathlengthLoss,
-    TorchLossWithChangingWeight,
-    BLPathlengthLossDelta,
-    SumLossBalanced,
-)
+from .loss_funcs import TorchLossWrapper, SumLoss, DynamicWeightLoss, LossFunction
 from .DataLoaderGenerators import DataLoaderGenerator, DataLoaderGenerator3
 
 __all__ = [
@@ -26,10 +19,8 @@ __all__ = [
     "CombineMethods",
     "TorchLossWrapper",
     "SumLoss",
-    "SumLossBalanced",
-    "BLPathlengthLossDelta",
-    "BLPathlengthLoss",
+    "LossFunction",
+    "DynamicWeightLoss",  
     "DataLoaderGenerator",
     "DataLoaderGenerator3",
-    "TorchLossWithChangingWeight",
 ]

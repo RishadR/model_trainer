@@ -104,7 +104,7 @@ class ModelTrainer:
                     outputs = self.model(inputs)
                     loss = self.loss_func(outputs, data, self.mode)
 
-            self.loss_func.loss_tracker_epoch_ended()
+            self.loss_func.loss_tracker_epoch_update()
             # Reporting
             if self.reporting:
                 pass

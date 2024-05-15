@@ -75,10 +75,12 @@ class LossFunction(ABC):
     """
     Base abstract class for all loss functions. All loss functions must inherit from this class and implement the
     following methods
-        1. __call__
-        2. __str__
-        3. loss_tracker_epoch_update (optional)
-        4. reset (optional)
+        1. __call__ (required) : When called, this method should return the loss value
+        2. __str__  (required) : Return a string representation of the loss function
+        3. loss_tracker_epoch_update (optional) : Called at the end of the epoch to perform any necessary operations on
+                                                  the LossTracker object. This should usually include updating the
+                                                  LossTracker object with the average loss for the epoch
+        4. reset (optional) : Reset the loss function
     """
 
     def __init__(self, name: Optional[str] = None):
@@ -105,13 +107,6 @@ class LossFunction(ABC):
         Return a string representation of the loss function
         """
 
-    def loss_tracker_epoch_update(self) -> None:
-        """
-        Update the loss tracker at the end of an current epoch. This sums up all the step losses and updates the per
-        epoch losses for each of the tracked losses
-        """
-        self.loss_tracker.epoch_update()
-
     def loss_tracker_step_update(self, loss_value: float, trainer_mode: str) -> None:
         """
         The Defualt loss tracker step update method. This is meant to be called at the very end of the __call__ method.
@@ -126,11 +121,11 @@ class LossFunction(ABC):
         """
         self.loss_tracker = LossTracker(list(self.loss_tracker.epoch_losses.keys()))
 
-    @abstractmethod
-    def loss_tracker_epoch_ended(self) -> None:
+    def loss_tracker_epoch_update(self) -> None:
         """
         Called at the end of the epoch to perform any necessary operations in the ModelTrainer
         """
+        self.loss_tracker.epoch_update()
 
 
 class TorchLossWrapper(LossFunction):
@@ -171,9 +166,6 @@ class TorchLossWrapper(LossFunction):
 
     def __str__(self) -> str:
         return f"Torch Loss Function: {self.loss_func}"
-
-    def loss_tracker_epoch_ended(self) -> None:
-        self.loss_tracker.epoch_update()
 
 
 class SumLoss(LossFunction):
@@ -244,13 +236,13 @@ class SumLoss(LossFunction):
         {individual_loss_descriptions}
         """
 
-    def loss_tracker_epoch_ended(self) -> None:
+    def loss_tracker_epoch_update(self) -> None:
         # Merge the per step losses onto the underlying loss tracker
         self._merge_per_step_losses()
 
         # Update individual loss trackers
         for loss_func in self.loss_funcs:
-            loss_func.loss_tracker_epoch_ended()
+            loss_func.loss_tracker_epoch_update()
 
         # Update self
         self.loss_tracker.epoch_update()
@@ -310,7 +302,7 @@ class DynamicWeightLoss(LossFunction):
         self.loss_tracker_step_update(loss.item(), trainer_mode)
         return loss
 
-    def loss_tracker_epoch_ended(self) -> None:
+    def loss_tracker_epoch_update(self) -> None:
         if self.current_epoch < self.total_epochs + self.start_delay - 1:
             self.current_epoch += 1
         self.loss_tracker.epoch_update()

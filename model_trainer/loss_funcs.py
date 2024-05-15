@@ -101,18 +101,6 @@ class LossFunction(ABC):
         """
 
     @abstractmethod
-    def turn_on_tracking(self) -> None:
-        """
-        Turn on the loss tracking
-        """
-
-    @abstractmethod
-    def turn_off_tracking(self) -> None:
-        """
-        Turn off the loss tracking
-        """
-
-    @abstractmethod
     def __str__(self) -> str:
         """
         Return a string representation of the loss function
@@ -160,7 +148,6 @@ class TorchLossWrapper(LossFunction):
         else:
             self.loss_tracker = LossTracker([f"{name}_train_loss", f"{name}_val_loss"])
         self.loss_func = torch_loss_object
-        self._tracking_on = True
         self.column_indices = column_indices
 
     def __call__(self, model_output, dataloader_data, trainer_mode):
@@ -172,16 +159,10 @@ class TorchLossWrapper(LossFunction):
             loss = self.loss_func(model_output, dataloader_data[DATA_LOADER_LABEL_INDEX])
 
         # Update internal loss tracker
-        if self._tracking_on:
-            loss_name = self.train_loss_name if trainer_mode == "train" else self.val_loss_name
-            self.loss_tracker.step_update(loss_name, loss.item())
+        loss_name = self.train_loss_name if trainer_mode == "train" else self.val_loss_name
+        self.loss_tracker.step_update(loss_name, loss.item())
         return loss
 
-    def turn_on_tracking(self) -> None:
-        self._tracking_on = True
-
-    def turn_off_tracking(self) -> None:
-        self._tracking_on = False
 
     def __str__(self) -> str:
         return f"Torch Loss Function: {self.loss_func}"
@@ -269,14 +250,6 @@ class SumLoss(LossFunction):
         # Update self
         self.loss_tracker.epoch_update()
 
-    def turn_on_tracking(self) -> None:
-        for loss_func in self.loss_funcs:
-            loss_func.turn_on_tracking()
-
-    def turn_off_tracking(self) -> None:
-        for loss_func in self.loss_funcs:
-            loss_func.turn_off_tracking()
-
 
 class DynamicWeightLoss(LossFunction):
     """
@@ -314,14 +287,11 @@ class DynamicWeightLoss(LossFunction):
             start_delay: The number of epochs to wait before starting the weight change
             weights: The weights for each epoch
             loss_tracker: The loss tracker object
-            _tracking_on: A flag to turn on/off tracking
-
         """
         super().__init__(name)
         self.loss_func = loss_func
         self.train_loss_name = "train_loss" if name is None else f"{name}_train_loss"
         self.val_loss_name = "val_loss" if name is None else f"{name}_val_loss"
-        self._tracking_on = True
         self.loss_tracker = LossTracker([self.train_loss_name, self.val_loss_name])
         self.weights = torch.linspace(start_weight, end_weight, epoch_count)
         self.weights = torch.cat([start_weight * torch.ones(start_delay), self.weights])
@@ -332,21 +302,14 @@ class DynamicWeightLoss(LossFunction):
     def __call__(self, model_output, dataloader_data, trainer_mode):
         loss = self.weights[self.current_epoch].item() * self.loss_func(model_output, dataloader_data, trainer_mode)
         # Update internal loss tracker
-        if self._tracking_on:
-            loss_name = self.train_loss_name if trainer_mode == "train" else self.val_loss_name
-            self.loss_tracker.step_update(loss_name, loss.item())
+        loss_name = self.train_loss_name if trainer_mode == "train" else self.val_loss_name
+        self.loss_tracker.step_update(loss_name, loss.item())
         return loss
 
     def loss_tracker_epoch_ended(self) -> None:
         if self.current_epoch < self.total_epochs + self.start_delay - 1:
             self.current_epoch += 1
         self.loss_tracker.epoch_update()
-
-    def turn_on_tracking(self) -> None:
-        self._tracking_on = True
-
-    def turn_off_tracking(self) -> None:
-        self._tracking_on = False
 
     def __str__(self) -> str:
         return f"Loss Function with changing weight: {self.loss_func},\n Start Weight: {self.weights[0].item()}, End Weight: {self.weights[-1].item()}, Total Epochs: {self.total_epochs}, Start Delay: {self.start_delay}"

@@ -5,9 +5,8 @@ A set of custom loss function meant to be used with the ModelTrainer Class
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 from matplotlib import pyplot as plt
-from sklearn.preprocessing import StandardScaler
 import torch
-from .misc import DATA_LOADER_LABEL_INDEX, DATA_LOADER_EXTRA_INDEX
+from .misc import DATA_LOADER_LABEL_INDEX
 
 
 class LossTracker:
@@ -108,10 +107,18 @@ class LossFunction(ABC):
 
     def loss_tracker_epoch_update(self) -> None:
         """
-        Update the loss tracker for the current epoch. This is meant to be called at the end of each epoch by the
-        ModelTrainer class
+        Update the loss tracker at the end of an current epoch. This sums up all the step losses and updates the per
+        epoch losses for each of the tracked losses
         """
         self.loss_tracker.epoch_update()
+
+    def loss_tracker_step_update(self, loss_value: float, trainer_mode: str) -> None:
+        """
+        The Defualt loss tracker step update method. This is meant to be called at the very end of the __call__ method.
+        If you want some custom behavior, you can override this method in the subclass
+        """
+        loss_name = self.train_loss_name if trainer_mode == "train" else self.val_loss_name
+        self.loss_tracker.step_update(loss_name, loss_value)
 
     def reset(self) -> None:
         """
@@ -159,10 +166,8 @@ class TorchLossWrapper(LossFunction):
             loss = self.loss_func(model_output, dataloader_data[DATA_LOADER_LABEL_INDEX])
 
         # Update internal loss tracker
-        loss_name = self.train_loss_name if trainer_mode == "train" else self.val_loss_name
-        self.loss_tracker.step_update(loss_name, loss.item())
+        self.loss_tracker_step_update(loss.item(), trainer_mode)
         return loss
-
 
     def __str__(self) -> str:
         return f"Torch Loss Function: {self.loss_func}"
@@ -302,8 +307,7 @@ class DynamicWeightLoss(LossFunction):
     def __call__(self, model_output, dataloader_data, trainer_mode):
         loss = self.weights[self.current_epoch].item() * self.loss_func(model_output, dataloader_data, trainer_mode)
         # Update internal loss tracker
-        loss_name = self.train_loss_name if trainer_mode == "train" else self.val_loss_name
-        self.loss_tracker.step_update(loss_name, loss.item())
+        self.loss_tracker_step_update(loss.item(), trainer_mode)
         return loss
 
     def loss_tracker_epoch_ended(self) -> None:

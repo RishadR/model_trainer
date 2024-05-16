@@ -223,21 +223,29 @@ class SumLoss(LossFunction):
             loss_func.loss_tracker_epoch_update()
 
         # Copy the latest epoch loss from each loss function to the sum loss tracker
-        for loss_func in self.loss_funcs:
+        for loss_func, weight in zip(self.loss_funcs, self.weights_list):
+            # All losses within this tracker has the same weight
             for loss_name in loss_func.loss_tracker.epoch_losses.keys():
-                # Get the latest loss value and weight it
-                loss_value = loss_func.loss_tracker.epoch_losses[loss_name][-1] * self.weights_list[loss_name]
-                self.loss_tracker.epoch_losses[loss_name].append(loss_value)
+                # Check if there is a new loss value, if available go and copy that onto the SumLoss's loss tracker
+                if len(self.loss_tracker.epoch_losses[loss_name]) < len(loss_func.loss_tracker.epoch_losses[loss_name]):
+                    loss_value = loss_func.loss_tracker.epoch_losses[loss_name][-1] * weight
+                    self.loss_tracker.epoch_losses[loss_name].append(loss_value)
 
         # Sum the losses into the train and val losses
-        train_loss_sum = 0.0
-        val_loss_sum = 0.0
-        for loss_name in self.train_losses:
-            train_loss_sum += self.loss_tracker.epoch_losses[loss_name][-1]
-        for loss_name in self.val_losses:
-            val_loss_sum += self.loss_tracker.epoch_losses[loss_name][-1]
-        self.loss_tracker.epoch_losses[self.train_loss_name].append(train_loss_sum)
-        self.loss_tracker.epoch_losses[self.val_loss_name].append(val_loss_sum)
+        # Only update if the lenghts are different
+        dummy_loss = self.train_losses[0]
+        if len(self.loss_tracker.epoch_losses[dummy_loss]) > len(self.loss_tracker.epoch_losses[self.train_loss_name]):
+            train_loss_sum = 0.0
+            for loss_name in self.train_losses:
+                train_loss_sum += self.loss_tracker.epoch_losses[loss_name][-1]
+            self.loss_tracker.epoch_losses[self.train_loss_name].append(train_loss_sum)
+        
+        dummy_loss = self.val_losses[0]
+        if len(self.loss_tracker.epoch_losses[dummy_loss]) > len(self.loss_tracker.epoch_losses[self.val_loss_name]):
+            val_loss_sum = 0.0
+            for loss_name in self.val_losses:
+                val_loss_sum += self.loss_tracker.epoch_losses[loss_name][-1]
+            self.loss_tracker.epoch_losses[self.val_loss_name].append(val_loss_sum)
 
 
 class DynamicWeightLoss(LossFunction):

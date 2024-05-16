@@ -1,0 +1,11 @@
+# ignore pycache files
+/__pycache__/
+*.pyc
+
+
+# Ignore Caches
+.pytest_cache
+
+# Ignore VSCODE 
+.vscode/
+

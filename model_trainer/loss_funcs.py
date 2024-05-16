@@ -207,21 +207,6 @@ class SumLoss(LossFunction):
 
         return loss
 
-    def _merge_per_step_losses(self):
-        """
-        Merge the per step losses from all the constituent losses into a single dictionary
-        """
-        for index, loss_func in enumerate(self.loss_funcs):
-            dictionary = loss_func.loss_tracker.step_loss_sum
-            for loss_name, loss in dictionary.items():
-                self.loss_tracker.step_update(loss_name, loss * self.weights_list[index])  # Weighted sum
-        self.loss_tracker.step_update(
-            self.train_loss_name, sum([self.loss_tracker.step_loss_sum[loss_name] for loss_name in self.train_losses])
-        )
-        self.loss_tracker.step_update(
-            self.val_loss_name, sum([self.loss_tracker.step_loss_sum[loss_name] for loss_name in self.val_losses])
-        )
-
     def __str__(self) -> str:
         individual_loss_descriptions = [str(loss_func) for loss_func in self.loss_funcs]
         individual_loss_descriptions = "\n".join(individual_loss_descriptions)
@@ -233,15 +218,26 @@ class SumLoss(LossFunction):
         """
 
     def loss_tracker_epoch_update(self) -> None:
-        # Merge the per step losses onto the underlying loss tracker
-        self._merge_per_step_losses()
-
         # Update individual loss trackers
         for loss_func in self.loss_funcs:
             loss_func.loss_tracker_epoch_update()
 
-        # Update self
-        self.loss_tracker.epoch_update()
+        # Copy the latest epoch loss from each loss function to the sum loss tracker
+        for loss_func in self.loss_funcs:
+            for loss_name in loss_func.loss_tracker.epoch_losses.keys():
+                # Get the latest loss value and weight it
+                loss_value = loss_func.loss_tracker.epoch_losses[loss_name][-1] * self.weights_list[loss_name]
+                self.loss_tracker.epoch_losses[loss_name].append(loss_value)
+
+        # Sum the losses into the train and val losses
+        train_loss_sum = 0.0
+        val_loss_sum = 0.0
+        for loss_name in self.train_losses:
+            train_loss_sum += self.loss_tracker.epoch_losses[loss_name][-1]
+        for loss_name in self.val_losses:
+            val_loss_sum += self.loss_tracker.epoch_losses[loss_name][-1]
+        self.loss_tracker.epoch_losses[self.train_loss_name].append(train_loss_sum)
+        self.loss_tracker.epoch_losses[self.val_loss_name].append(val_loss_sum)
 
 
 class DynamicWeightLoss(LossFunction):

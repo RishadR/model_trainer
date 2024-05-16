@@ -75,12 +75,12 @@ class LossFunction(ABC):
     """
     Base abstract class for all loss functions. All loss functions must inherit from this class and implement the
     following methods
-        1. __call__ (required) : When called, this method should return the loss value
-        2. __str__  (required) : Return a string representation of the loss function
-        3. loss_tracker_epoch_update (optional) : Called at the end of the epoch to perform any necessary operations on
-                                                  the LossTracker object. This should usually include updating the
-                                                  LossTracker object with the average loss for the epoch
-        4. reset (optional) : Reset the loss function
+        |1. __call__ (required) : When called, this method should return the loss value
+        |2. __str__  (required) : Return a string representation of the loss function
+        |3. loss_tracker_epoch_update (optional) : Called at the end of the epoch to perform any necessary operations on
+        |                                          the LossTracker object. This should usually include updating the
+        |                                          LossTracker object with the average loss for the epoch
+        |4. reset (optional) : Reset the loss function
     """
 
     def __init__(self, name: Optional[str] = None):
@@ -199,9 +199,8 @@ class SumLoss(LossFunction):
 
     def __call__(self, model_output, dataloader_data, trainer_mode) -> torch.Tensor:
         # Calculate one loss to get the typing correct
-        loss = torch.tensor(0.0, device=model_output.device, dtype=torch.float32)
-        # loss = self.weights_tensor[0] * self.loss_funcs[0](model_output, dataloader_data, trainer_mode)
-        # for loss_func, weight in zip(self.loss_funcs[1:], self.weights_tensor[1:]):
+        device = model_output.device if isinstance(model_output, torch.Tensor) else model_output[0].device
+        loss = torch.tensor(0.0, device=device, dtype=torch.float32)
         for loss_func, weight in zip(self.loss_funcs, self.weights_tensor):
             extra_loss_term = weight * loss_func(model_output, dataloader_data, trainer_mode)
             loss = torch.add(loss, extra_loss_term)

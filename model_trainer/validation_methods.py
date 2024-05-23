@@ -20,6 +20,12 @@ class ValidationMethod(ABC):
     def split(self, table: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Return the Train and Validation split for the input table"""
 
+    @classmethod
+    def _check_validity(self, train_table: pd.DataFrame, validation_table: pd.DataFrame) -> None:
+        """Check if the splits have non-zero length"""
+        assert len(train_table) > 0, "Train Table is empty"
+        assert len(validation_table) > 0, "Validation Table is empty"
+
 
 class RandomSplit(ValidationMethod):
     """
@@ -65,6 +71,7 @@ class CVSplit(ValidationMethod):
         validation_table = pd.DataFrame(table_splits[self.window_number])
         train_table = table_splits[: self.window_number] + table_splits[: self.window_number + 1 :]
         train_table = pd.concat(train_table, axis=0)
+        ValidationMethod._check_validity(train_table, validation_table)
         return train_table, validation_table
 
     def __str__(self) -> str:
@@ -83,6 +90,7 @@ class HoldOneOut(ValidationMethod):
     def split(self, table: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
         validation_table = table[table[self.holdout_col_name] == self.holdout_value].copy()
         train_table = table[table[self.holdout_col_name] != self.holdout_value].copy()
+        ValidationMethod._check_validity(train_table, validation_table)
         return train_table, validation_table
 
     def __str__(self) -> str:
@@ -112,6 +120,7 @@ class CombineMethods(ValidationMethod):
         for validation_method in self.methods_to_combine[1:]:
             train_table, validation_temp = validation_method.split(train_table)
             validation_table = pd.concat([validation_table, validation_temp], ignore_index=True, axis=0)
+        ValidationMethod._check_validity(train_table, validation_table)
         return train_table, validation_table
 
     def __str__(self) -> str:

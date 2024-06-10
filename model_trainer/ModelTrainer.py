@@ -1,4 +1,4 @@
-from typing import Dict, Type
+from typing import Dict, Tuple, Type
 from torch import nn
 import torch
 from torch.optim import SGD, Optimizer
@@ -70,12 +70,9 @@ class ModelTrainer:
         """Run Training and store results. Each Run resets all old results"""
         self.model = self.model.to(self.device)
         self.train_loader, self.validation_loader = self.dataloader_gen.generate(self.validation_method)
-        # Check device types for the model and the data loader
-        # assert(self.model.device == self.train_loader.dataset.device)
 
-        # Rest Losses
-        # self.train_loss = []
-        # self.validation_loss = []
+        # Check device types for the model and the data loader
+        assert self.model.device == self.train_loader.dataset.device
 
         # Train Model
         for _ in range(epochs):  # loop over the dataset multiple times
@@ -83,26 +80,13 @@ class ModelTrainer:
             self.mode = "train"
             self.model = self.model.train()
             for data in self.train_loader:
-                inputs = data[DATA_LOADER_INPUT_INDEX]
-
-                # zero the parameter gradients
-                self.optimizer.zero_grad()
-
-                # forward + backward + optimize
-                outputs = self.model(inputs)
-                loss = self.loss_func(outputs, data, self.mode)
-                loss.backward()
-                self.optimizer.step()
+                self.single_batch_train_run(data)
 
             # Validation Loop
             self.mode = "validate"
             self.model = self.model.eval()
             for data in self.validation_loader:
-                inputs = data[DATA_LOADER_INPUT_INDEX]
-
-                with torch.no_grad():
-                    outputs = self.model(inputs)
-                    loss = self.loss_func(outputs, data, self.mode)
+                self.single_batch_validation_run(data)
 
             self.loss_func.loss_tracker_epoch_update()
             # Reporting
@@ -110,6 +94,27 @@ class ModelTrainer:
                 pass
                 # TODO: Implement this part if needed in the future
         self.total_epochs += epochs
+
+    def single_batch_train_run(self, data: Tuple) -> None:
+        """Run a single batch of data through the model"""
+        inputs = data[DATA_LOADER_INPUT_INDEX]
+
+        # zero the parameter gradients
+        self.optimizer.zero_grad()
+
+        # forward + backward + optimize
+        outputs = self.model(inputs)
+        loss = self.loss_func(outputs, data, self.mode)
+        loss.backward()
+        self.optimizer.step()
+
+    def single_batch_validation_run(self, data: Tuple) -> None:
+        """Run a single batch of data through the model for validation purposes"""
+        inputs = data[DATA_LOADER_INPUT_INDEX]
+
+        with torch.no_grad():
+            outputs = self.model(inputs)
+            _ = self.loss_func(outputs, data, self.mode)
 
     def __str__(self) -> str:
         return f"""

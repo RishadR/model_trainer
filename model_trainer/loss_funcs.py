@@ -3,10 +3,11 @@ A set of custom loss function meant to be used with the ModelTrainer Class
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional
-from matplotlib import pyplot as plt
+from typing import Dict, List, Literal, Optional
+from matplotlib.figure import Figure
 import torch
 from .misc import DATA_LOADER_LABEL_INDEX
+from .visualizations import plot_losses
 
 
 class LossTracker:
@@ -50,16 +51,11 @@ class LossTracker:
                 self.step_loss_sum[loss_name] = 0.0  # Reset
                 self.steps_per_epoch_count[loss_name] = 0  # Reset
 
-    def plot_losses(self) -> None:
+    def plot_losses(self, plot_type: Literal["split", "joint"] = "joint") -> Figure:
         """
         Plot the losses on the current axes
         """
-        if len(self.epoch_losses) == 0:
-            print("No losses to plot!")
-            return
-        for loss_name, loss_values in self.epoch_losses.items():
-            plt.plot(loss_values, label=loss_name)
-            plt.legend()
+        return plot_losses(self.epoch_losses, plot_type)
 
     def reset(self):
         """
@@ -239,7 +235,7 @@ class SumLoss(LossFunction):
             for loss_name in self.train_losses:
                 train_loss_sum += self.loss_tracker.epoch_losses[loss_name][-1]
             self.loss_tracker.epoch_losses[self.train_loss_name].append(train_loss_sum)
-        
+
         dummy_loss = self.val_losses[0]
         if len(self.loss_tracker.epoch_losses[dummy_loss]) > len(self.loss_tracker.epoch_losses[self.val_loss_name]):
             val_loss_sum = 0.0

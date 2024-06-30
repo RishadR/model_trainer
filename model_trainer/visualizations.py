@@ -29,7 +29,7 @@ def plot_losses(
         figsize = (8, 6) if plot_type == "joint" else (16, 6)
 
     ## Create Figure
-    fig, axes = plt.subplots(1, 2 if plot_type == "split" else 1, figsize=figsize)
+    fig, axes = plt.subplots(1, 2 if plot_type == "split" else 1, figsize=figsize, sharey=True)
 
     ## Sanity Checks
     if len(losses) == 0:

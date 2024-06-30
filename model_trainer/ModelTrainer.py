@@ -2,11 +2,11 @@ from typing import Dict, Tuple, Type
 from torch import nn
 import torch
 from torch.optim import SGD, Optimizer
+from torch.utils.data import DataLoader
 from .misc import DATA_LOADER_INPUT_INDEX
 from .DataLoaderGenerators import DataLoaderGenerator
 from .validation_methods import ValidationMethod
 from .loss_funcs import LossFunction
-from torch.utils.data import DataLoader
 
 
 class ModelTrainer:
@@ -70,9 +70,6 @@ class ModelTrainer:
         """Run Training and store results. Each Run resets all old results"""
         self.model = self.model.to(self.device)
         self.train_loader, self.validation_loader = self.dataloader_gen.generate(self.validation_method)
-
-        # Check device types for the model and the data loader
-        assert self.model.device == self.train_loader.dataset.device
 
         # Train Model
         for _ in range(epochs):  # loop over the dataset multiple times

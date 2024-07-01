@@ -31,6 +31,7 @@ class EarlyStopper:
         self.delta = delta
         self.counter = 0
         self.best_loss: float = []
+        self.current_loss: float = []
         self.loss_tracker = None
 
     def attach_loss_function(self, loss_function: LossFunction) -> None:
@@ -39,28 +40,36 @@ class EarlyStopper:
         """
         self.loss_tracker = loss_function.loss_tracker
         self.best_loss = [inf] * len(self.loss_tracker.epoch_losses)
+        self.current_loss = [0] * len(self.loss_tracker.epoch_losses)
 
     def _capture_most_recent_loss(self) -> None:
         """
         Private Function. Capture the most recent loss values from the loss tracker
         """
         for idx, loss in enumerate(self.loss_tracker.epoch_losses):
-            self.best_loss[idx] = loss[-1]
+            self.current_loss[idx] = loss[-1]
+
+    def _update_best_loss(self) -> None:
+        """
+        Private Function. Update the best loss values based on the current loss values
+        """
+        for idx, loss in enumerate(self.current_loss):
+            if loss < self.best_loss[idx]:
+                self.best_loss[idx] = loss
 
     def check_early_stopping(self) -> bool:
         """
         Check if the model should stop training based on the loss values
         """
         self._capture_most_recent_loss()
+        self._update_best_loss()
 
         ## Check for NaN values
         if any([loss != loss for loss in self.loss_tracker.epoch_losses]):
             return True
 
         ## Check for Loss Improvement
-        if any(
-            [loss < best_loss - self.delta for loss, best_loss in zip(self.loss_tracker.epoch_losses, self.best_loss)]
-        ):
+        if any([loss < best_loss - self.delta for loss, best_loss in zip(self.current_loss, self.best_loss)]):
             self.counter = 0
             return False
         else:

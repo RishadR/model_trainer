@@ -3,7 +3,7 @@ A set of custom loss function meant to be used with the ModelTrainer Class
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Literal, Optional
+from typing import Dict, List, Literal, Optional, Tuple
 from matplotlib.figure import Figure
 import torch
 from .misc import DATA_LOADER_LABEL_INDEX
@@ -51,11 +51,13 @@ class LossTracker:
                 self.step_loss_sum[loss_name] = 0.0  # Reset
                 self.steps_per_epoch_count[loss_name] = 0  # Reset
 
-    def plot_losses(self, plot_type: Literal["split", "joint"] = "joint") -> Figure:
+    def plot_losses(
+        self, plot_type: Literal["split", "joint"] = "joint", figsize: Optional[Tuple[float, float]] = None
+    ) -> Figure:
         """
         Plot the losses on the current axes
         """
-        return plot_losses(self.epoch_losses, plot_type)
+        return plot_losses(self.epoch_losses, plot_type, figsize)
 
     def reset(self):
         """

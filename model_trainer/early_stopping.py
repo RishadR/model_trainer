@@ -40,14 +40,14 @@ class EarlyStopper:
         """
         self.loss_tracker = loss_function.loss_tracker
         self.best_loss = [inf] * len(self.loss_tracker.epoch_losses)
-        self.current_loss = [0] * len(self.loss_tracker.epoch_losses)
+        self.current_loss = [0.] * len(self.loss_tracker.epoch_losses)
 
     def _capture_most_recent_loss(self) -> None:
         """
         Private Function. Capture the most recent loss values from the loss tracker
         """
-        for idx, loss in enumerate(self.loss_tracker.epoch_losses):
-            self.current_loss[idx] = loss[-1]
+        for idx, loss_name in enumerate(self.loss_tracker.epoch_losses):
+            self.current_loss[idx] = self.loss_tracker.epoch_losses[loss_name][-1]
 
     def _update_best_loss(self) -> None:
         """
@@ -65,7 +65,7 @@ class EarlyStopper:
         self._update_best_loss()
 
         ## Check for NaN values
-        if any([loss != loss for loss in self.loss_tracker.epoch_losses]):
+        if any([loss != loss for loss in self.current_loss]):
             return True
 
         ## Check for Loss Improvement

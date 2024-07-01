@@ -1,4 +1,8 @@
-from typing import Dict, Tuple, Type
+"""
+A model trainer module used to train and validate a model. This module is designed to be used with PyTorch models and
+uses a Composer design pattern to allow for easy customization of the training process.
+"""
+from typing import Dict, Optional, Tuple, Type
 from torch import nn
 import torch
 from torch.optim import SGD, Optimizer
@@ -7,6 +11,7 @@ from .misc import DATA_LOADER_INPUT_INDEX
 from .DataLoaderGenerators import DataLoaderGenerator
 from .validation_methods import ValidationMethod
 from .loss_funcs import LossFunction
+from .early_stopping import EarlyStopper
 
 
 class ModelTrainer:
@@ -30,6 +35,7 @@ class ModelTrainer:
         dataloader_gen: DataLoaderGenerator,
         validation_method: ValidationMethod,
         loss_func: LossFunction,
+        early_stopper: Optional[EarlyStopper] = None,
         device: torch.device = torch.device("cuda"),
     ):
         self.model = model
@@ -49,6 +55,11 @@ class ModelTrainer:
         self.total_epochs = 0
         # Set initial mode to train
         self.mode = "train"
+        # Early Stopping
+        if early_stopper is None:
+            early_stopper = EarlyStopper()
+        self.early_stopper = early_stopper
+        self.early_stopper.attach_loss_function(loss_func)
 
     def set_optimizer(self, optimizer_class: Type, kwargs: Dict) -> None:
         """Change the current optimizer. Call this method before calling run to see the effects
@@ -85,12 +96,18 @@ class ModelTrainer:
             for data in self.validation_loader:
                 self.single_batch_validation_run(data)
 
+            # Epcch Update
             self.loss_func.loss_tracker_epoch_update()
+
             # Reporting
             if self.reporting:
                 pass
                 # TODO: Implement this part if needed in the future
-        self.total_epochs += epochs
+            self.total_epochs += 1
+
+            # Early Stopping
+            if self.early_stopper.check_early_stopping():
+                break
 
     def single_batch_train_run(self, data: Tuple) -> None:
         """Run a single batch of data through the model"""

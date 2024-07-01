@@ -206,7 +206,7 @@ class SumLoss(LossFunction):
     def __str__(self) -> str:
         individual_loss_descriptions = [str(loss_func) for loss_func in self.loss_funcs]
         individual_loss_descriptions = "\n".join(individual_loss_descriptions)
-        return f"""Sum of multiple loss functions. 
+        return f"""Sum of multiple loss functions.
         Constituent Losses: {[func.name for func in self.loss_funcs]}
         Weights: {self.weights_list}
         Individual Loss Func Description:
@@ -301,7 +301,9 @@ class DynamicWeightLoss(LossFunction):
         self.loss_tracker.epoch_update()
 
     def __str__(self) -> str:
-        return f"Loss Function with changing weight: {self.loss_func},\n Start Weight: {self.weights[0].item()}, End Weight: {self.weights[-1].item()}, Total Epochs: {self.total_epochs}, Start Delay: {self.start_delay}"
+        return f"Loss Function with changing weight: {self.loss_func},\n \
+        Start Weight: {self.weights[0].item()}, End Weight: {self.weights[-1].item()}, \
+        Total Epochs: {self.total_epochs}, Start Delay: {self.start_delay}"
 
     def reset(self) -> None:
         self.current_epoch = 0

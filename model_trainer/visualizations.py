@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 import scienceplots  # ignore warning, the plot style requires this import!
 
-plt.style.use(["science", "nature"])
+plt.style.use(["science", "ieee"])
 
 
 def plot_losses(
@@ -41,6 +41,8 @@ def plot_losses(
         for loss_name, loss_values in losses.items():
             plt.plot(loss_values, label=loss_name)
             plt.ylim(bottom=0.0)
+            plt.xlabel("Epoch")
+            plt.ylabel("Loss")
             plt.legend()
 
     elif plot_type == "split":
@@ -49,10 +51,13 @@ def plot_losses(
         for loss_name in train_losses:
             axes[0].plot(losses[loss_name], label=loss_name)
             axes[0].set_ylim(bottom=0.0)
+            axes[0].set_xlabel("Epoch")
+            axes[0].set_ylabel("Loss")
         axes[0].legend()
         for loss_name in val_losses:
             axes[1].plot(losses[loss_name], label=loss_name)
             axes[1].set_ylim(bottom=0.0)
+            axes[1].set_xlabel("Epoch")
         axes[1].legend()
 
     return fig

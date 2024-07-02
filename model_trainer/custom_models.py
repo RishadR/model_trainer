@@ -8,75 +8,7 @@ from typing import List, Literal, Optional
 import torch.nn as nn
 import torch
 
-
-class PerceptronReLU(nn.Module):
-    """A Multi-Layer Fully-Connected Perceptron based on the array node counts.
-    The first element is the number of inputs to the network, each consecutive number is the number
-    of nodes(inputs) in each hidden layers and the last element represents the number of outputs.
-    """
-
-    def __init__(self, node_counts: List[int]) -> None:
-        super().__init__()
-        self.layers: List[nn.Module]
-        self.layers = [nn.Linear(node_counts[0], node_counts[1])]
-        for index, count in enumerate(node_counts[1:-1], start=1):
-            self.layers.append(nn.ReLU())
-            self.layers.append(nn.Linear(count, node_counts[index + 1]))
-        self.layers.append(nn.Flatten())
-        self.model = nn.Sequential(*self.layers)
-
-    def forward(self, x):
-        return self.model(x)
-
-
-class PerceptronBN(nn.Module):
-    """A Multi-Layer Fully-Connected Perceptron based on the array node counts with Batch Normalization!
-    The first element is the number of inputs to the network, each consecutive number is the number
-    of nodes(inputs) in each hidden layers and the last element represents the number of outputs.
-    """
-
-    def __init__(self, node_counts: List[int]) -> None:
-        super().__init__()
-        self.layers: List[nn.Module]
-        self.layers = [nn.Linear(node_counts[0], node_counts[1])]
-        for index, count in enumerate(node_counts[1:-1], start=1):
-            self.layers.append(nn.BatchNorm1d(count))
-            self.layers.append(nn.ReLU())
-            self.layers.append(nn.Linear(count, node_counts[index + 1]))
-        self.layers.append(nn.Flatten())
-        self.model = nn.Sequential(*self.layers)
-
-    def forward(self, x):
-        return self.model(x)
-
-
-class PerceptronDO(nn.Module):
-    """A Multi-Layer Fully-Connected Perceptron based on the array node counts with DropOut!
-    ## How to Use
-    1. The first element is the number of inputs to the network, each consecutive number is the number
-    of nodes(inputs) in each hidden layers and the last element represents the number of outputs.
-    2. You can set the Dropout Rate between each layer using dropout_rates. This defaults to 0.5 for each layer. Make
-    sure it's length is 2 less than [node_counts]
-    3. Set the Dropout rate to 0.0 to effectively nullify it
-    """
-
-    def __init__(self, node_counts: List[int], dropout_rates: Optional[List[float]] = None) -> None:
-        super().__init__()
-        self.layers: List[nn.Module]
-        if dropout_rates is None:
-            linear_layer_count = len(node_counts) - 1
-            dropout_layer_count = linear_layer_count - 1
-            dropout_rates = [0.5] * dropout_layer_count
-        self.layers = [nn.Linear(node_counts[0], node_counts[1])]
-        for index, count in enumerate(node_counts[1:-1], start=1):
-            self.layers.append(nn.Dropout1d(dropout_rates[index - 1]))
-            self.layers.append(nn.ReLU())
-            self.layers.append(nn.Linear(count, node_counts[index + 1]))
-        self.layers.append(nn.Flatten())
-        self.model = nn.Sequential(*self.layers)
-
-    def forward(self, x):
-        return self.model(x)
+default_init = nn.init.kaiming_normal_
 
 
 class PerceptronBD(nn.Module):
@@ -108,12 +40,13 @@ class PerceptronBD(nn.Module):
         for index, count in enumerate(node_counts[1:-1], start=1):
             self.layers.append(nn.BatchNorm1d(count))
             if dropout_rates is not None:
-                self.layers.append(nn.Dropout1d(dropout_rates[index - 1]))
+                if dropout_rates[index - 1] > 0:
+                    self.layers.append(nn.Dropout1d(dropout_rates[index - 1]))
             self.layers.append(nn.ReLU())
             self.layers.append(nn.Linear(count, node_counts[index + 1]))
         self.layers.append(nn.Flatten())
-        # self.layers.append(nn.Tanh())
         self.model = nn.Sequential(*self.layers)
+        self.apply(default_init)
 
     def forward(self, x):
         return self.model(x)
@@ -574,48 +507,3 @@ class SplitChannelCNN(nn.Module):
         x = self.network(x)
         return x
 
-
-# class SpatialReducer(nn.Module):
-#     """
-#     A network that reduces spatial features by taking averages. The reduces features are then connected to a regular
-#     FC network complete with ReLU, BatchNorm and Dropout layers. The final layer is a linear layer with no activation.
-
-#     The input should be a 2D tensor with the shape (batch_size, spatial_features). The output would also be a 2D tensor
-#     """
-
-#     def __init__(
-#         self,
-#         input_channels: int,
-#         channel_length: int,
-#         reduction_factors: List[int],
-#         fc_output_nodes: List[int],
-#         fc_dropouts: Optional[List[float]],
-#     ):
-#         """
-#         Args:
-#             input_channels: int Number of input channels
-#             channel_length: int Length of each input channel
-#             reduction_factors: List[int] List of reduction levels. Each memeber represents one reduction operation, where
-#             the input length is reduced by that factor. The output of each reduction level is concatenated to the first
-#             layer of the following FC network.
-#             fc_output_counts: List[int] Node counts for the fully connected layers.
-#             fc_dropouts: Optional[List[float]] Dropout rates for the fully connected layers. The length must be the 1 
-#             less than the length of fc_node_counts. Set this to None to avoid Dropout Layers. (Analogous to setting 
-#             dropout values to 0). Defaults to None / no dropout layer
-#         """
-#         # Sanity Check
-#         assert len(fc_output_nodes) > 0, "fc_output_nodes must have atleast 1 element"
-#         if fc_dropouts is not None:
-#             assert len(fc_dropouts) == len(fc_output_nodes) - 1, "fc_dropouts must be 1 less than fc_output_nodes"
-#         # Divisibility Check
-#         for level in reduction_factors:
-#             assert channel_length % level == 0, f"channel_length must be divisible by each element in reduction_factors"
-
-
-#         super().__init__()
-#         self.reduction_levels = reduction_factors
-#         self.reduction_layers = nn.ModuleList([nn.AvgPool1d(channel_length // level, channel_length // level, padding=0)  for level in reduction_factors])
-#         self.fc = PerceptronBD(
-#             [input_channels * len(reduction_factors) * len(reduction_factors)] + fc_node_counts, fc_dropouts
-#         )
-#         self.layers = self.reduction_layers + self.fc.layers

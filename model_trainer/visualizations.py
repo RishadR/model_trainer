@@ -2,7 +2,7 @@
 A decoupled module for visualizing the model training process.
 """
 
-from typing import List, Literal, Optional, Tuple
+from typing import Dict, List, Literal, Optional, Tuple
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 import scienceplots  # ignore warning, the plot style requires this import!
@@ -29,7 +29,7 @@ class LossVisualizerMixin:
 
     def plot_losses(
         self,
-        plot_type: Literal["joint", "split"],
+        plot_type: Literal["joint", "split"] = "joint",
         figsize: Optional[Tuple[float, float]] = None,
     ) -> Figure:
         """
@@ -50,10 +50,10 @@ class LossVisualizerMixin:
         ## Create Figure
         fig, axes = plt.subplots(1, 2 if plot_type == "split" else 1, figsize=figsize, sharey=True)
 
+        losses: Dict[str, List[float]] = {}
         ## Capture the losses
-        losses = {k: v for k, v in self.loss_tracker.epoch_losses}
-        for child in self.children():
-            losses.update({k: v for k, v in child.loss_tracker.epoch_losses})
+        for loss_func in [self, *self.children()]:
+            losses.update(loss_func.loss_tracker.epoch_losses)
 
         ## Sanity Checks
         if len(losses) == 0:

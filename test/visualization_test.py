@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from model_trainer.core import ModelMode
 from model_trainer.loss_funcs import TorchLossWrapper, SumLoss
 
+plt.style.use('seaborn-whitegrid')
 
 def test_loss_table():
     loss = TorchLossWrapper(MSELoss(), name="dark_magician")

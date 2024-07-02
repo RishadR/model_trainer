@@ -68,8 +68,8 @@ class LossVisualizerMixin:
             plt.legend()
 
         elif plot_type == "split":
-            train_losses = losses.keys()[::2]
-            val_losses = losses.keys()[1::2]
+            train_losses = list(losses.keys())[::2]
+            val_losses = list(losses.keys())[1::2]
             for loss_name in train_losses:
                 axes[0].plot(losses[loss_name], label=loss_name)
             axes[0].set_ylim(bottom=0.0)

@@ -12,4 +12,6 @@
 # Ignore EGG
 *.egg-info
 
+# Ignore build
+build/
 

@@ -99,7 +99,7 @@ class LossFunction(ABC):
         self.val_loss_name = self.loss_tracker.tracked_losses[1]
 
     @abstractmethod
-    def __call__(self, model_output, dataloader_data, trainer_mode: str) -> torch.Tensor:
+    def __call__(self, model_output, dataloader_data, trainer_mode: ModelMode) -> torch.Tensor:
         """
         Calculate & return the loss
         :param model_output: The output of the model

@@ -11,9 +11,6 @@ from rich.table import Table
 from rich.console import Console
 from model_trainer.core import LossFunction, LossTracker
 
-plt.style.use(["science", "grid"])
-
-
 class LossVisualizerMixin:
     """
     Class holding the visualization methods for the LossFunction object. Add this as a mixin

@@ -11,7 +11,7 @@ from rich.table import Table
 from rich.console import Console
 from model_trainer.core import LossFunction, LossTracker
 
-plt.style.use(["science", "ieee"])
+plt.style.use(["science", "grid"])
 
 
 class LossVisualizerMixin:
@@ -45,7 +45,7 @@ class LossVisualizerMixin:
         """
         ## Determine Figure Size if None
         if figsize is None:
-            figsize = (8, 6) if plot_type == "joint" else (16, 6)
+            figsize = (6, 5) if plot_type == "joint" else (10, 5)
 
         ## Create Figure
         fig, axes = plt.subplots(1, 2 if plot_type == "split" else 1, figsize=figsize, sharey=True)
@@ -53,7 +53,8 @@ class LossVisualizerMixin:
         losses: Dict[str, List[float]] = {}
         ## Capture the losses
         for loss_func in [self, *self.children()]:
-            losses.update(loss_func.loss_tracker.epoch_losses)
+            for loss_name, loss_values in loss_func.loss_tracker.epoch_losses.items():
+                losses[loss_name] = loss_values
 
         ## Sanity Checks
         if len(losses) == 0:
@@ -70,8 +71,8 @@ class LossVisualizerMixin:
             plt.legend()
 
         elif plot_type == "split":
-            train_losses = [loss_name for loss_name in losses.keys() if loss_name.endswith("train_loss")]
-            val_losses = [loss_name for loss_name in losses.keys() if loss_name.endswith("val_loss")]
+            train_losses = losses.keys()[::2]
+            val_losses = losses.keys()[1::2]
             for loss_name in train_losses:
                 axes[0].plot(losses[loss_name], label=loss_name)
             axes[0].set_ylim(bottom=0.0)

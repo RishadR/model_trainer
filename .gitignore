@@ -9,3 +9,7 @@
 # Ignore VSCODE 
 .vscode/
 
+# Ignore EGG
+*.egg-info
+
+

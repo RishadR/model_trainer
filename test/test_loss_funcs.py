@@ -1,7 +1,12 @@
+"""
+To be deprecated
+"""
+
 import unittest
 import torch
 from torch.nn import MSELoss
-from model_trainer.loss_funcs import SumLoss, TorchLossWrapper, LossTracker, DynamicWeightLoss
+from model_trainer.core import LossTracker
+from model_trainer.loss_funcs import SumLoss, TorchLossWrapper, DynamicWeightLoss
 
 
 class TestLostTracker(unittest.TestCase):
@@ -128,12 +133,13 @@ class TestTorchLossWithChangingWeight(unittest.TestCase):
         # First three epochs: weight = 1, next two epochs: starts with weight = 1, ends with weight = 2
         self.assertEqual(self.loss_delay.loss_tracker.epoch_losses["train_loss"], [1.0, 1.0, 1.0, 1.0, 2.0])
 
+
 class TestSumLoss(unittest.TestCase):
     def setUp(self) -> None:
         self.loss_func1 = TorchLossWrapper(MSELoss(), name="loss1")
         self.loss_func2 = TorchLossWrapper(MSELoss(), name="loss2")
         self.loss_func = SumLoss([self.loss_func1, self.loss_func2], [1.0, 1.0])
-    
+
     def test_epoch_sum(self):
         self.loss_func.loss_tracker.reset()
         model_output = torch.tensor([1.0]).cuda()
@@ -142,7 +148,7 @@ class TestSumLoss(unittest.TestCase):
         self.loss_func.loss_tracker_epoch_update()
         expected_loss = 2.0
         self.assertEqual(self.loss_func.loss_tracker.epoch_losses["train_loss"], [expected_loss])
-    
+
     def test_weighting(self):
         weighted_loss = SumLoss([self.loss_func1, self.loss_func2], [1.0, 2.0])
         weighted_loss.loss_tracker.reset()
@@ -152,6 +158,9 @@ class TestSumLoss(unittest.TestCase):
         weighted_loss.loss_tracker_epoch_update()
         expected_loss = 3.0
         self.assertEqual(weighted_loss.loss_tracker.epoch_losses["train_loss"], [expected_loss])
+
+
+
 
 
 

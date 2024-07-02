@@ -6,7 +6,7 @@ Personal Notes: If time permits, maybe decouple the early stopping rules into se
 """
 
 from math import inf
-from .loss_funcs import LossFunction
+from .core import LossFunction
 
 
 class EarlyStopper:

@@ -12,6 +12,7 @@ dependencies = [
     "scikit_learn>=1.0.0",
     "torch>=2.0.0",
     "SciencePlots>=1.0.0",
+    "rich >= 10.0.0",
 ]
 requires-python = ">=3.6"
 authors = [
@@ -37,6 +38,9 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
+
+[tool.pylint.'MESSAGES CONTROL']
+extension-pkg-whitelist = "pydantic"
 
 [project.urls]
 homepage = "https://github.com/RishadR/model_trainer"

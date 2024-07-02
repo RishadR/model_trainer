@@ -10,9 +10,9 @@ from torch.utils.data import DataLoader
 from .misc import DATA_LOADER_INPUT_INDEX
 from .DataLoaderGenerators import DataLoaderGenerator
 from .validation_methods import ValidationMethod
-from .loss_funcs import LossFunction
+from .core import LossFunction
 from .early_stopping import EarlyStopper
-
+from .core import ModelMode
 
 class ModelTrainer:
     """
@@ -54,7 +54,7 @@ class ModelTrainer:
         self.reporting = False
         self.total_epochs = 0
         # Set initial mode to train
-        self.mode = "train"
+        self.mode = ModelMode.TRAIN
         # Early Stopping
         if early_stopper is None:
             early_stopper = EarlyStopper()
@@ -85,13 +85,13 @@ class ModelTrainer:
         # Train Model
         for _ in range(epochs):  # loop over the dataset multiple times
             # Training Loop
-            self.mode = "train"
+            self.mode = ModelMode.TRAIN
             self.model = self.model.train()
             for data in self.train_loader:
                 self.single_batch_train_run(data)
 
             # Validation Loop
-            self.mode = "validate"
+            self.mode = ModelMode.VALIDATE
             self.model = self.model.eval()
             for data in self.validation_loader:
                 self.single_batch_validation_run(data)

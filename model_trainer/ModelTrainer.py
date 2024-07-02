@@ -7,12 +7,10 @@ from torch import nn
 import torch
 from torch.optim import SGD, Optimizer
 from torch.utils.data import DataLoader
-from .misc import DATA_LOADER_INPUT_INDEX
-from .DataLoaderGenerators import DataLoaderGenerator
-from .validation_methods import ValidationMethod
-from .core import LossFunction
-from .early_stopping import EarlyStopper
-from .core import ModelMode
+from model_trainer.core import DATA_LOADER_INPUT_INDEX, LossFunction, ModelMode
+from model_trainer.DataLoaderGenerators import DataLoaderGenerator
+from model_trainer.validation_methods import ValidationMethod
+from model_trainer.early_stopping import EarlyStopper
 
 class ModelTrainer:
     """

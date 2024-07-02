@@ -7,6 +7,8 @@ from enum import IntEnum
 from typing import Dict, List, Optional
 import torch
 
+# CONSTANTS
+DATA_LOADER_INPUT_INDEX, DATA_LOADER_LABEL_INDEX, DATA_LOADER_EXTRA_INDEX = 0, 1, 2
 
 class ModelMode(IntEnum):
     """

@@ -5,9 +5,9 @@ A set of custom loss function meant to be used with the ModelTrainer Class
 from typing import List, Optional, Tuple
 from matplotlib.figure import Figure
 import torch
-from .core import LossFunction, LossTracker
-from .misc import DATA_LOADER_LABEL_INDEX
-from .visualizations import LossVisualizerMixin
+from model_trainer.core import LossFunction, LossTracker
+from model_trainer.core import DATA_LOADER_LABEL_INDEX
+from model_trainer.visualizations import LossVisualizerMixin
 
 
 class TorchLossWrapper(LossFunction, LossVisualizerMixin):

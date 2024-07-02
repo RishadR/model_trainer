@@ -9,7 +9,7 @@ import scienceplots  # ignore warning, the plot style requires this import!
 from abc import abstractmethod
 from rich.table import Table
 from rich.console import Console
-from .core import LossFunction, LossTracker
+from model_trainer.core import LossFunction, LossTracker
 
 plt.style.use(["science", "ieee"])
 

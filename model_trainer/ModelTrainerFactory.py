@@ -4,7 +4,7 @@ Deprecated
 
 from typing import Callable, Dict, Type
 from torch.utils.data import DataLoader
-from .core import LossFunction
+from model_trainer.core import LossFunction
 
 
 class ModelTrainerFactory:

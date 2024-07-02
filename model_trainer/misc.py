@@ -5,9 +5,6 @@ import random
 import numpy as np
 import torch
 
-# CONSTANTS
-DATA_LOADER_INPUT_INDEX, DATA_LOADER_LABEL_INDEX, DATA_LOADER_EXTRA_INDEX = 0, 1, 2
-
 def set_seed(seed):
     """Manually sets the seed for python internals, numpy, torch and CUDA
 

@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Tuple
 from pandas import DataFrame
 import torch
 from torch.utils.data import DataLoader, TensorDataset
-from .validation_methods import ValidationMethod
+from model_trainer.validation_methods import ValidationMethod
 
 
 class DataLoaderGenerator:

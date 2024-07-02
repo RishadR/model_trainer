@@ -11,7 +11,7 @@ from rich.table import Table
 from rich.console import Console
 from model_trainer.core import LossFunction, LossTracker
 
-plt.style.use(["science", "ieee"])
+plt.style.use(["science", "grid"])
 
 
 class LossVisualizerMixin:
@@ -45,7 +45,7 @@ class LossVisualizerMixin:
         """
         ## Determine Figure Size if None
         if figsize is None:
-            figsize = (8, 6) if plot_type == "joint" else (16, 6)
+            figsize = (6, 5) if plot_type == "joint" else (10, 5)
 
         ## Create Figure
         fig, axes = plt.subplots(1, 2 if plot_type == "split" else 1, figsize=figsize, sharey=True)

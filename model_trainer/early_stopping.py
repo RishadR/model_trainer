@@ -61,8 +61,9 @@ class EarlyStopper:
         """
         Check if the model should stop training based on the loss values
         """
-        self._capture_most_recent_loss()
-        self._update_best_loss()
+        ## This ordering is important - DO NOT SWAP!
+        self._update_best_loss()    # Best loss takes into account all losses up till **BEFORE** the current epoch
+        self._capture_most_recent_loss()    # Current loss is the loss of the current epoch
 
         ## Check for NaN values
         if any([loss != loss for loss in self.current_loss]):

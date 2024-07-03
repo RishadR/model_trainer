@@ -176,8 +176,8 @@ class ModelTrainerNoisy(ModelTrainer):
         """
         super().__init__(model, dataloader_gen, validation_method, loss_func, early_stopper, device)
         self.noisy_column_indices = noisy_column_indices
-        self.noise_std = torch.tensor(noise_std).astype(torch.float32).to(device).reshape(1, -1)
-        self.noise_mean = torch.tensor(noise_mean).astype(torch.float32).to(device).reshape(1, -1)
+        self.noise_std = torch.tensor(noise_std, dtype=torch.float32, device=device).reshape(1, -1)
+        self.noise_mean = torch.tensor(noise_mean, dtype=torch.float32, device=device).reshape(1, -1)
 
     def single_batch_train_run(self, data: Tuple) -> None:
         """Run a single batch of data through the model with added noise"""

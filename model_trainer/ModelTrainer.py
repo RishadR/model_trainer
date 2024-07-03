@@ -2,7 +2,8 @@
 A model trainer module used to train and validate a model. This module is designed to be used with PyTorch models and
 uses a Composer design pattern to allow for easy customization of the training process.
 """
-from typing import Dict, Optional, Tuple, Type
+
+from typing import Dict, List, Optional, Tuple, Type
 from torch import nn
 import torch
 from torch.optim import SGD, Optimizer
@@ -11,6 +12,7 @@ from model_trainer.core import DATA_LOADER_INPUT_INDEX, LossFunction, ModelMode
 from model_trainer.DataLoaderGenerators import DataLoaderGenerator
 from model_trainer.validation_methods import ValidationMethod
 from model_trainer.early_stopping import EarlyStopper
+
 
 class ModelTrainer:
     """
@@ -141,3 +143,55 @@ class ModelTrainer:
         Optimizer Properties":
         {self.optimizer}
         """
+
+
+class ModelTrainerNoisy(ModelTrainer):
+    """
+    A slightly modified version of the ModelTrainer class that adds noise to the input data at each training step
+    """
+
+    def __init__(
+        self,
+        model: nn.Module,
+        dataloader_gen: DataLoaderGenerator,
+        validation_method: ValidationMethod,
+        loss_func: LossFunction,
+        noisy_column_indices: List[int],
+        noise_std: List[float],
+        noise_mean: List[float],
+        early_stopper: Optional[EarlyStopper] = None,
+        device: torch.device = torch.device("cuda"),
+    ):
+        """
+        A slightly modified version of the ModelTrainer class that adds noise to the input data at each training step
+
+        :param model: The model to be trained
+        :param dataloader_gen: The DataLoaderGenerator object that generates the training and validation data loaders
+        :param validation_method: The validation method to be used
+        :param loss_func: The loss function to be used
+        :param noisy_column_indices: The indices of the columns in the input data that should be noisy
+        :param noise_std: The standard deviation of the noise to be added to the noisy columns
+        :param noise_mean: The mean of the noise to be added to the noisy columns
+        :param early_stopper: The EarlyStopper object to be used. If None, the default EarlyStopper is used
+        """
+        super().__init__(model, dataloader_gen, validation_method, loss_func, early_stopper, device)
+        self.noisy_column_indices = noisy_column_indices
+        self.noise_std = torch.tensor(noise_std).astype(torch.float32).to(device).reshape(1, -1)
+        self.noise_mean = torch.tensor(noise_mean).astype(torch.float32).to(device).reshape(1, -1)
+
+    def single_batch_train_run(self, data: Tuple) -> None:
+        """Run a single batch of data through the model with added noise"""
+        inputs = data[DATA_LOADER_INPUT_INDEX]
+        batch_size = inputs.shape[0]
+        inputs[:, self.noisy_column_indices] += torch.normal(
+            mean=self.noise_mean.expand(batch_size, -1), std=self.noise_std.expand(batch_size, -1)
+        )
+
+        # zero the parameter gradients
+        self.optimizer.zero_grad()
+
+        # forward + backward + optimize
+        outputs = self.model(inputs)
+        loss = self.loss_func(outputs, data, self.mode)
+        loss.backward()
+        self.optimizer.step()

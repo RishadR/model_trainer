@@ -46,6 +46,25 @@ class TestEarlyStopper(unittest.TestCase):
         early_stopper.check_early_stopping()
         self.loss_func.loss_tracker.epoch_losses = {"train_loss": [2.0, 2.0, 2.0]}
         self.assertTrue(early_stopper.check_early_stopping())
+    
+    def test_resets_when_error_improves(self):
+        early_stopper = EarlyStopper(patience=2, delta=0.0)
+        early_stopper.attach_loss_function(self.loss_func)
+        self.loss_func.loss_tracker.epoch_losses = {"train_loss": [2.0]}
+        early_stopper.check_early_stopping()
+        # Error improves -> counter resets
+        self.loss_func.loss_tracker.epoch_losses = {"train_loss": [2.0, 1.0]}
+        early_stopper.check_early_stopping()
+        self.assertTrue(early_stopper.counter == 0)
+        # Error improves -> counter resets
+        self.loss_func.loss_tracker.epoch_losses = {"train_loss": [2.0, 1.0, 0.7]}
+        early_stopper.check_early_stopping()
+        self.assertTrue(early_stopper.counter == 0)
+        # Error worsens -> counter increments
+        self.loss_func.loss_tracker.epoch_losses = {"train_loss": [2.0, 1.0, 0.7, 0.8]}
+        early_stopper.check_early_stopping()
+        self.assertTrue(early_stopper.counter == 1)
+        
 
 
 if __name__ == "__main__":

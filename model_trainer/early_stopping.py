@@ -40,7 +40,7 @@ class EarlyStopper:
         """
         self.loss_tracker = loss_function.loss_tracker
         self.best_loss = [inf] * len(self.loss_tracker.epoch_losses)
-        self.current_loss = [0.] * len(self.loss_tracker.epoch_losses)
+        self.current_loss = [inf] * len(self.loss_tracker.epoch_losses)
 
     def _capture_most_recent_loss(self) -> None:
         """

@@ -3,15 +3,14 @@ A decoupled module for visualizing the model training process.
 """
 
 from typing import Dict, List, Literal, Optional, Tuple
+from abc import abstractmethod, ABC
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
-import scienceplots  # ignore warning, the plot style requires this import!
-from abc import abstractmethod
 from rich.table import Table
 from rich.console import Console
 from model_trainer.core import LossFunction, LossTracker
 
-class LossVisualizerMixin:
+class LossVisualizerMixin(ABC):
     """
     Class holding the visualization methods for the LossFunction object. Add this as a mixin
     to get the visualization methods for the LossFunction object.
@@ -21,7 +20,7 @@ class LossVisualizerMixin:
     loss_tracker: LossTracker
 
     @abstractmethod
-    def children() -> List[LossFunction]:
+    def children(self) -> List[LossFunction]:
         pass
 
     def plot_losses(

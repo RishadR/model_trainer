@@ -83,7 +83,7 @@ class LossVisualizerMixin(ABC):
 
         return fig
 
-    def print_table(self):
+    def print_table(self) -> Console:
         """
         Print the losses in a tabular format using the rich library
         """
@@ -111,3 +111,5 @@ class LossVisualizerMixin(ABC):
         ## Print Table
         console = Console()
         console.print(table)
+
+        return console

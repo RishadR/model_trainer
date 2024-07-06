@@ -109,7 +109,7 @@ class LossVisualizerMixin(ABC):
             table.add_row(loss_func.name, train_loss, val_loss)
 
         ## Print Table
-        console = Console()
+        console = Console(record=True)
         console.print(table)
 
         return console

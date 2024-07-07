@@ -1,6 +1,36 @@
 import unittest
 import torch
-from inverse_modelling_tfo.model_training.custom_models import FeatureResidualNetwork
+from model_trainer.custom_models import FeatureResidualNetwork, PerceptronBD
+
+
+class TestPerceptronBD(unittest.TestCase):
+    def setUp(self):
+        self.in_features = 5
+        self.out_features = 1
+        self.batch_size = 32
+        self.x = torch.rand(self.batch_size, self.in_features)
+
+    def test_correct_output_shape(self):
+        model = PerceptronBD([self.in_features, 10, self.out_features])
+        model = model.eval()
+        y = model(self.x)
+        self.assertEqual(y.shape, (self.batch_size, self.out_features))
+
+    def test_model_works_with_dropout(self):
+        model = PerceptronBD([self.in_features, 10, self.out_features], [0.5, 0.5])
+        model = model.eval()
+        _ = model(self.x)
+
+    def test_smallest_model_possible_runs(self):
+        model = PerceptronBD([self.in_features, self.out_features])
+        model = model.eval()
+        _ = model(self.x)
+
+    def test_single_input_single_output_works(self):
+        x = torch.rand(self.batch_size, 1)
+        model = PerceptronBD([1, 2, 1])
+        model = model.eval()
+        _ = model(x)
 
 
 class TestFeatureResidualNetowrk(unittest.TestCase):
@@ -20,7 +50,7 @@ class TestFeatureResidualNetowrk(unittest.TestCase):
             self.lookup_key_indices,
             self.feature_indices,
         )
-        
+
         # Training/Testing with only one row of data messes up BatchNorm's moving-mean calcualtion. Set to eval mode to avoid this
         self.model = self.model.eval()
 

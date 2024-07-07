@@ -8,7 +8,26 @@ from typing import List, Literal, Optional
 import torch.nn as nn
 import torch
 
-default_init = nn.init.kaiming_normal_
+
+def he_initilization(module) -> None:
+    """
+    Initialize the weights of the module using the He initialization method. This is a common initialization method for
+    ReLU based networks. The weights are initialized using a normal distribution with a mean of 0 and a standard
+    deviation of sqrt(2 / n), where n is the number of input units in the weight tensor.
+
+    Args:
+        module: nn.Module The module whose weights need to be initialized
+
+    Returns:
+        None: The weights are initialized in-place
+    """
+    if isinstance(module, nn.Linear):
+        nn.init.kaiming_normal_(module.weight, nonlinearity="relu")
+        if module.bias is not None:
+            nn.init.zeros_(module.bias)
+
+
+default_init = he_initilization
 
 
 class PerceptronBD(nn.Module):
@@ -506,4 +525,3 @@ class SplitChannelCNN(nn.Module):
         x = x.view(-1, self.split_count, self.input_length)
         x = self.network(x)
         return x
-

@@ -5,6 +5,7 @@ A decoupled module for visualizing the model training process.
 from typing import Dict, List, Literal, Optional, Tuple
 from abc import abstractmethod, ABC
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from matplotlib.figure import Figure
 from rich.table import Table
 from rich.console import Console
@@ -43,6 +44,10 @@ class LossVisualizerMixin(ABC):
         if figsize is None:
             figsize = (6, 5) if plot_type == "joint" else (10, 5)
 
+        ## Get Colormap
+        cmap = mpl.cm.get_cmap("viridis")
+        
+        
         ## Create Figure
         fig, axes = plt.subplots(1, 2 if plot_type == "split" else 1, figsize=figsize, sharey=True)
 
@@ -59,8 +64,8 @@ class LossVisualizerMixin(ABC):
 
         ## Plotting
         if plot_type == "joint":
-            for loss_name, loss_values in losses.items():
-                plt.plot(loss_values, label=loss_name)
+            for index, (loss_name, loss_values) in enumerate(losses.items()):
+                plt.plot(loss_values, label=loss_name, color=cmap(index/len(losses)))
             plt.ylim(bottom=0.0)
             plt.xlabel("Epoch")
             plt.ylabel("Loss")
@@ -69,14 +74,14 @@ class LossVisualizerMixin(ABC):
         elif plot_type == "split":
             train_losses = list(losses.keys())[::2]
             val_losses = list(losses.keys())[1::2]
-            for loss_name in train_losses:
-                axes[0].plot(losses[loss_name], label=loss_name)
+            for index, loss_name in enumerate(train_losses):
+                axes[0].plot(losses[loss_name], label=loss_name, color=cmap(index/len(train_losses)))
             axes[0].set_ylim(bottom=0.0)
             axes[0].set_xlabel("Epoch")
             axes[0].set_ylabel("Loss")
             axes[0].legend()
-            for loss_name in val_losses:
-                axes[1].plot(losses[loss_name], label=loss_name)
+            for index, loss_name in enumerate(val_losses):
+                axes[1].plot(losses[loss_name], label=loss_name, color=cmap(index/len(val_losses)))
             axes[1].set_ylim(bottom=0.0)
             axes[1].set_xlabel("Epoch")
             axes[1].legend()

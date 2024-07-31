@@ -88,12 +88,12 @@ class DataLoaderGenerator:
         x_column_indices = [self.table.columns.tolist().index(x) for x in self.x_columns]
         y_column_indices = [self.table.columns.tolist().index(y) for y in self.y_columns]
         training_dataset = TensorDataset(
-            torch.tensor(train_table.iloc[:, x_column_indices].values, dtype=torch.float32).cuda(),
-            torch.tensor(train_table.iloc[:, y_column_indices].values, dtype=torch.float32).cuda(),
+            torch.tensor(train_table.iloc[:, x_column_indices].values, dtype=torch.float32, device=self.device),
+            torch.tensor(train_table.iloc[:, y_column_indices].values, dtype=torch.float32, device=self.device),
         )
         validation_dataset = TensorDataset(
-            torch.tensor(validation_table.iloc[:, x_column_indices].values, dtype=torch.float32).cuda(),
-            torch.tensor(validation_table.iloc[:, y_column_indices].values, dtype=torch.float32).cuda(),
+            torch.tensor(validation_table.iloc[:, x_column_indices].values, dtype=torch.float32, device=self.device),
+            torch.tensor(validation_table.iloc[:, y_column_indices].values, dtype=torch.float32, device=self.device),
         )
 
         # Create the data loaders

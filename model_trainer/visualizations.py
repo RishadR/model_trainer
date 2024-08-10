@@ -11,6 +11,7 @@ from rich.table import Table
 from rich.console import Console
 from model_trainer.core import LossFunction, LossTracker
 
+
 class LossVisualizerMixin(ABC):
     """
     Class holding the visualization methods for the LossFunction object. Add this as a mixin
@@ -28,6 +29,7 @@ class LossVisualizerMixin(ABC):
         self,
         plot_type: Literal["joint", "split"] = "joint",
         figsize: Optional[Tuple[float, float]] = None,
+        pin_bottom_to_zero: bool = True,
     ) -> Figure:
         """
         Plot the losses inside the loss dictionary. This is meant to be used inside the LossTracker Object.
@@ -38,6 +40,7 @@ class LossVisualizerMixin(ABC):
         :param losses: Dictionary containing the name of the losses and their values at each epoch
         :param plot_type: Type of plot to be generated, either 'joint' or 'split'
         :param figsize: Size of the figure to be generated. Pass None to autimatically determine the size
+        :param pin_bottom_to_zero: Whether to pin the bottom of the plot to zero
         :return: Figure object containing the plot
         """
         ## Determine Figure Size if None
@@ -46,8 +49,7 @@ class LossVisualizerMixin(ABC):
 
         ## Get Colormap
         cmap = mpl.cm.get_cmap("viridis")
-        
-        
+
         ## Create Figure
         fig, axes = plt.subplots(1, 2 if plot_type == "split" else 1, figsize=figsize, sharey=True)
 
@@ -65,8 +67,9 @@ class LossVisualizerMixin(ABC):
         ## Plotting
         if plot_type == "joint":
             for index, (loss_name, loss_values) in enumerate(losses.items()):
-                plt.plot(loss_values, label=loss_name, color=cmap(index/len(losses)))
-            plt.ylim(bottom=0.0)
+                plt.plot(loss_values, label=loss_name, color=cmap(index / len(losses)))
+            if pin_bottom_to_zero:
+                plt.ylim(bottom=0.0)
             plt.xlabel("Epoch")
             plt.ylabel("Loss")
             plt.legend()
@@ -75,14 +78,16 @@ class LossVisualizerMixin(ABC):
             train_losses = list(losses.keys())[::2]
             val_losses = list(losses.keys())[1::2]
             for index, loss_name in enumerate(train_losses):
-                axes[0].plot(losses[loss_name], label=loss_name, color=cmap(index/len(train_losses)))
-            axes[0].set_ylim(bottom=0.0)
+                axes[0].plot(losses[loss_name], label=loss_name, color=cmap(index / len(train_losses)))
+            if pin_bottom_to_zero:
+                axes[0].set_ylim(bottom=0.0)
             axes[0].set_xlabel("Epoch")
             axes[0].set_ylabel("Loss")
             axes[0].legend()
             for index, loss_name in enumerate(val_losses):
-                axes[1].plot(losses[loss_name], label=loss_name, color=cmap(index/len(val_losses)))
-            axes[1].set_ylim(bottom=0.0)
+                axes[1].plot(losses[loss_name], label=loss_name, color=cmap(index / len(val_losses)))
+            if pin_bottom_to_zero:
+                axes[1].set_ylim(bottom=0.0)
             axes[1].set_xlabel("Epoch")
             axes[1].legend()
 
@@ -104,11 +109,11 @@ class LossVisualizerMixin(ABC):
             train_loss_name = loss_func.loss_tracker.tracked_losses[0]
             val_loss_name = loss_func.loss_tracker.tracked_losses[1]
             if loss_func.loss_tracker.epoch_losses[train_loss_name]:
-                train_loss = f'{loss_func.loss_tracker.epoch_losses[train_loss_name][-1]:.4f}'
+                train_loss = f"{loss_func.loss_tracker.epoch_losses[train_loss_name][-1]:.4f}"
             else:
                 train_loss = ":question_mark:"
             if loss_func.loss_tracker.epoch_losses[val_loss_name]:
-                val_loss = f'{loss_func.loss_tracker.epoch_losses[val_loss_name][-1]:.4f}'
+                val_loss = f"{loss_func.loss_tracker.epoch_losses[val_loss_name][-1]:.4f}"
             else:
                 val_loss = ":question_mark:"
             table.add_row(loss_func.name, train_loss, val_loss)

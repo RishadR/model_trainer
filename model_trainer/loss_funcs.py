@@ -62,6 +62,8 @@ class SumLoss(LossFunction, LossVisualizerMixin):
         ## Sanity checks
         if not self._check_loss_funcs_validity(loss_funcs):
             raise ValueError("Loss names should be unique!")
+        if weights is None:
+            weights = [1.0 / len(loss_funcs)] * len(loss_funcs)     # Equal weights
         assert len(loss_funcs) == len(weights), "Number of loss functions and weights should match!"
 
         ## Initialize

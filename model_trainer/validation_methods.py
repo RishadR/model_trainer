@@ -5,7 +5,7 @@ Use these methods to generate two non-overlapping tables before passing them int
 """
 
 from abc import ABC, abstractmethod
-from typing import Tuple, Any, List
+from typing import Tuple, Any, List, Union
 import pandas as pd
 import numpy as np
 from model_trainer.misc import set_seed
@@ -85,9 +85,11 @@ class HoldOneOut(ValidationMethod):
     are held out for validation
     """
 
-    def __init__(self, holdout_col_name: str, holdout_value: Any):
+    def __init__(self, holdout_col_name: str, holdout_value: Union[List, Any]):
         self.holdout_col_name = holdout_col_name
-        if not isinstance(holdout_value, List):
+        if not (
+            isinstance(holdout_value, List) or isinstance(holdout_value, tuple) or isinstance(holdout_value, np.ndarray)
+        ):
             holdout_value = [holdout_value]
         self.holdout_value = holdout_value
 

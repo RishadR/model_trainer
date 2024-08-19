@@ -87,7 +87,7 @@ class HoldOneOut(ValidationMethod):
 
     def __init__(self, holdout_col_name: str, holdout_value: Any):
         self.holdout_col_name = holdout_col_name
-        if ~isinstance(holdout_value, list):
+        if not isinstance(holdout_value, List):
             holdout_value = [holdout_value]
         self.holdout_value = holdout_value
 

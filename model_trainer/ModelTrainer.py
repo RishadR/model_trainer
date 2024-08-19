@@ -75,12 +75,15 @@ class ModelTrainer:
         (Because of how PyTorch libraries are defined, changing batchsize requires creating a new DataLoader)
         """
         self.dataloader_gen.change_batch_size(batch_size)
-        self.train_loader, self.validation_loader = self.dataloader_gen.generate(self.validation_method)
 
     def run(self, epochs: int) -> None:
         """Run Training and store results. Each Run resets all old results"""
         self.model = self.model.to(self.device)
         self.train_loader, self.validation_loader = self.dataloader_gen.generate(self.validation_method)
+
+        # Ensure that both loaders have a non-zero length
+        if len(self.train_loader) == 0 or len(self.validation_loader) == 0:
+            raise ValueError("Data Loaders have a length of zero. Check the DataLoaders!")
 
         # Train Model
         for _ in range(epochs):  # loop over the dataset multiple times

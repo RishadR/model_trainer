@@ -80,16 +80,20 @@ class CVSplit(ValidationMethod):
 
 class HoldOneOut(ValidationMethod):
     """
-    Hold one sample of a specific column out for the training set and the held out one for validation
+    Hold one sample of a specific column out for the training set and the held out one for validation. The holdout_value
+    can be a single value or a list of values. If a list is provided, all the rows with the column value in the list
+    are held out for validation
     """
 
     def __init__(self, holdout_col_name: str, holdout_value: Any):
         self.holdout_col_name = holdout_col_name
+        if ~isinstance(holdout_value, list):
+            holdout_value = [holdout_value]
         self.holdout_value = holdout_value
 
     def split(self, table: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        validation_table = table[table[self.holdout_col_name] == self.holdout_value].copy()
-        train_table = table[table[self.holdout_col_name] != self.holdout_value].copy()
+        validation_table = table[table[self.holdout_col_name].isin(self.holdout_value)].copy()
+        train_table = table[~table[self.holdout_col_name].isin(self.holdout_value)].copy()
         ValidationMethod._check_validity(train_table, validation_table)
         return train_table, validation_table
 

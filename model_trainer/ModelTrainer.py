@@ -36,6 +36,7 @@ class ModelTrainer:
         validation_method: ValidationMethod,
         loss_func: LossFunction,
         early_stopper: Optional[EarlyStopper] = None,
+        verbose: bool = False,
         device: torch.device = torch.device("cuda"),
     ):
         self.model = model
@@ -51,7 +52,7 @@ class ModelTrainer:
         self.optimizer = SGD(self.model.parameters(), lr=3e-4, momentum=0.9)
         self.device = device
         # Trackers
-        self.reporting = False
+        self.verbose = verbose
         self.total_epochs = 0
         # Set initial mode to train
         self.mode = ModelMode.TRAIN
@@ -103,9 +104,11 @@ class ModelTrainer:
             self.loss_func.loss_tracker_epoch_update()
 
             # Reporting
-            if self.reporting:
-                pass
-                # TODO: Implement this part if needed in the future
+            if self.verbose:
+                # Print Losses
+                print(f"Epoch: {self.total_epochs}", \
+                    f"Train Loss: {self.loss_func.loss_tracker.epoch_losses[self.loss_func.train_loss_name][-1]:.4}", \
+                    f"Validation Loss: {self.loss_func.loss_tracker.epoch_losses[self.loss_func.val_loss_name][-1]:.4}")
             self.total_epochs += 1
 
             # Early Stopping

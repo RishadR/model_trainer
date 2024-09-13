@@ -13,6 +13,8 @@ from model_trainer.DataLoaderGenerators import DataLoaderGenerator
 from model_trainer.validation_methods import ValidationMethod
 from model_trainer.early_stopping import EarlyStopper
 
+__all__ = ["ModelTrainer", "ModelTrainerNoisy"]
+
 
 class ModelTrainer:
     """
@@ -106,9 +108,11 @@ class ModelTrainer:
             # Reporting
             if self.verbose:
                 # Print Losses
-                print(f"Epoch: {self.total_epochs}", \
-                    f"Train Loss: {self.loss_func.loss_tracker.epoch_losses[self.loss_func.train_loss_name][-1]:.4}", \
-                    f"Validation Loss: {self.loss_func.loss_tracker.epoch_losses[self.loss_func.val_loss_name][-1]:.4}")
+                print(
+                    f"Epoch: {self.total_epochs}",
+                    f"Train Loss: {self.loss_func.loss_tracker.epoch_losses[self.loss_func.train_loss_name][-1]:.4}",
+                    f"Validation Loss: {self.loss_func.loss_tracker.epoch_losses[self.loss_func.val_loss_name][-1]:.4}",
+                )
             self.total_epochs += 1
 
             # Early Stopping

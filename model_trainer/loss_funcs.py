@@ -9,6 +9,7 @@ from model_trainer.core import LossFunction, LossTracker
 from model_trainer.core import DATA_LOADER_LABEL_INDEX
 from model_trainer.visualizations import LossVisualizerMixin
 
+__all__ = ["TorchLossWrapper", "SumLoss", "DynamicWeightLoss"]
 
 class TorchLossWrapper(LossFunction, LossVisualizerMixin):
     """

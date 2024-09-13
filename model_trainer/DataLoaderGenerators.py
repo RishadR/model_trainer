@@ -9,6 +9,7 @@ import torch
 from torch.utils.data import DataLoader, TensorDataset
 from model_trainer.validation_methods import ValidationMethod
 
+__all__ = ["DataLoaderGenerator", "DataLoaderGenerator3"]
 
 class DataLoaderGenerator:
     """

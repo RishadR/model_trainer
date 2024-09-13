@@ -103,6 +103,47 @@ class HoldOneOut(ValidationMethod):
         return f"Holds out f{self.holdout_col_name} columns {self.holdout_value} for validation. The rest are used for training"
 
 
+class ColumnBasedRandomSplit(ValidationMethod):
+    """
+    Uniformly splits the data based on the values of a specific column. Ensures that each level of the column is
+    evenly split between the training and validation sets. The column must have a finite number of unique values. This
+    split is a special case of RandomSplit where we first split the data based on the column values and then randomly
+    shuffle the data within each split.
+    """
+
+    def __init__(self, split_column: str, train_split: float = 0.8, seed: int = 42) -> None:
+        self.split_column = split_column
+        self.train_split = train_split
+        self.seed = seed
+
+    def split(self, table: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        set_seed(self.seed)
+        ## Capture the unique values of the column and sort them
+        unique_values = table[self.split_column].unique()
+        unique_values = unique_values[~pd.isnull(unique_values)]
+        unique_values = np.sort(unique_values)
+
+        ## Split the data based on the unique values
+        train_table = pd.DataFrame()
+        validation_table = pd.DataFrame()
+        for value in unique_values:
+            value_table = table[table[self.split_column] == value]
+            row_ids = np.arange(0, len(value_table), 1)
+            np.random.shuffle(row_ids)
+            train_ids = row_ids[: int(len(row_ids) * self.train_split)]
+            validation_ids = row_ids[int(len(row_ids) * self.train_split) :]
+            train_table = pd.concat([train_table, value_table.iloc[train_ids, :]], axis=0)
+            validation_table = pd.concat([validation_table, value_table.iloc[validation_ids, :]], axis=0)
+
+        ## Reset the index of the tables
+        train_table = train_table.reset_index(drop=True)
+        validation_table = validation_table.reset_index(drop=True)
+
+        ## Return the split if the tables are non-empty
+        ValidationMethod._check_validity(train_table, validation_table)
+        return train_table, validation_table
+
+
 class CombineMethods(ValidationMethod):
     """
     Combine multiple validation methods in a chain.

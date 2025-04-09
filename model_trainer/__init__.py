@@ -10,3 +10,4 @@ from model_trainer.ModelTrainer import *
 from model_trainer.validation_methods import *
 from model_trainer.loss_funcs import *
 from model_trainer.DataLoaderGenerators import *
+from model_trainer.early_stopping import *

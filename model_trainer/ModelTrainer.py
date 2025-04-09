@@ -3,6 +3,7 @@ A model trainer module used to train and validate a model. This module is design
 uses a Composer design pattern to allow for easy customization of the training process.
 """
 
+from copy import deepcopy
 from typing import Dict, List, Optional, Tuple, Type
 from torch import nn
 import torch
@@ -26,6 +27,21 @@ class ModelTrainer:
     calling run()
     3. Similarly, any of the other properties can also be changed before calling run
     4. Turn on reporting when using with Ray Tune
+    
+    ## Arguments
+        model: Fully initialized model to be trained
+        dataloader_gen: DataLoaderGenerator object to generate the training and validation data loaders
+        validation_method: ValidationMethod object to validate the model
+        loss_func: LossFunction object to calculate and track the loss
+        early_stopper: EarlyStopper object to stop the training based on some criteria
+        verbose: Whether to print the training and validation loss after each epoch
+        device: Device to use for training (default: cuda)
+        lr_schedulers: List of learning rate schedulers to use (default: None) 
+                    For each scheduler that you want to attach, pass a list of dict with the following keys:
+                        - scheduler: The scheduler class name
+                        - kwargs: The keyword arguments to be passed to the scheduler during initialization
+                    exmple: [{"scheduler": torch.optim.lr_scheduler.StepLR, "kwargs": {"step_size": 10, "gamma": 0.1}}]
+                    
 
     ## Results
     train_loss, validation_loss
@@ -40,8 +56,11 @@ class ModelTrainer:
         early_stopper: Optional[EarlyStopper] = None,
         verbose: bool = False,
         device: torch.device = torch.device("cuda"),
+        lr_schedulers: Optional[List[Dict]] = None,
     ):
+        # TODO: Implement Learning Rate Schedulers
         self.model = model
+        self.model_best_state_dict: Optional[Dict] = None
         self.loss_func = loss_func
         # Call a reset on the loss tracker
         loss_func.loss_tracker.reset()
@@ -63,6 +82,12 @@ class ModelTrainer:
             early_stopper = EarlyStopper()
         self.early_stopper = early_stopper
         self.early_stopper.attach_loss_function(loss_func)
+        self.lr_schedulers = []
+        if lr_schedulers is not None:
+            for scheduler_params in lr_schedulers:
+                 self.lr_schedulers.append(scheduler_params["scheduler"](self.optimizer, **scheduler_params["kwargs"]))
+        self.early_stopper.reset()
+        
 
     def set_optimizer(self, optimizer_class: Type, kwargs: Dict) -> None:
         """Change the current optimizer. Call this method before calling run to see the effects
@@ -83,6 +108,7 @@ class ModelTrainer:
         """Run Training and store results. Each Run resets all old results"""
         self.model = self.model.to(self.device)
         self.train_loader, self.validation_loader = self.dataloader_gen.generate(self.validation_method)
+        self.early_stopper.reset()
 
         # Ensure that both loaders have a non-zero length
         if len(self.train_loader) == 0 or len(self.validation_loader) == 0:
@@ -95,6 +121,11 @@ class ModelTrainer:
             self.model = self.model.train()
             for data in self.train_loader:
                 self.single_batch_train_run(data)
+            
+            # Update Learning Rate Schedulers
+            if self.lr_schedulers:
+                for scheduler in self.lr_schedulers:
+                    scheduler.step()
 
             # Validation Loop
             self.mode = ModelMode.VALIDATE
@@ -116,7 +147,12 @@ class ModelTrainer:
             self.total_epochs += 1
 
             # Early Stopping
-            if self.early_stopper.check_early_stopping():
+            self.early_stopper.check_early_stopping()
+            if self.early_stopper.best_loss_updated:
+                self.model_best_state_dict = deepcopy(self.model.state_dict())
+
+            if self.early_stopper.time_to_stop:
+                self.model.load_state_dict(self.model_best_state_dict)
                 break
 
     def single_batch_train_run(self, data: Tuple) -> None:
@@ -130,7 +166,9 @@ class ModelTrainer:
         outputs = self.model(inputs)
         loss = self.loss_func(outputs, data, self.mode)
         loss.backward()
-        self.optimizer.step()
+
+        
+        
 
     def single_batch_validation_run(self, data: Tuple) -> None:
         """Run a single batch of data through the model for validation purposes"""

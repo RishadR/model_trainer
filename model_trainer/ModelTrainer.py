@@ -166,6 +166,7 @@ class ModelTrainer:
         outputs = self.model(inputs)
         loss = self.loss_func(outputs, data, self.mode)
         loss.backward()
+        self.optimizer.step()
 
         
         
